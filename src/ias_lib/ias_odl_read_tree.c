@@ -14,10 +14,17 @@ NULL              Failure
 
 ******************************************************************************/
 
-#include <sys/param.h>
 #include "lablib3.h"                 /* prototypes for the ODL functions */
 #include "ias_odl.h"
 #include "ias_logging.h"
+
+#ifndef _WIN32
+#include <limits.h>
+#define PATHMAX PATH_MAX
+#else
+#include <stdlib.h>
+#define PATHMAX _MAX_PATH
+#endif
 
 extern char ODLErrorMessage[];       /* External Variables */
 
@@ -27,10 +34,10 @@ IAS_OBJ_DESC *ias_odl_read_tree
 )
 {
     OBJDESC *p_lp= NULL;            /* pointer to struct to populate */
-    char ODLPathName[MAXPATHLEN];   /* file path buffer */
+    char ODLPathName[PATHMAX];		/* file path buffer */
     ODLErrorMessage[0] = '\0';      /* error message buffer */
 
-    strncpy(ODLPathName, p_ODLFile, MAXPATHLEN);
+    strncpy(ODLPathName, p_ODLFile, PATHMAX);
 
     /* open and parse ODL file - error messages are suppressed */
     if ((p_lp = OdlParseLabelFile(ODLPathName, NULL, ODL_NOEXPAND, TRUE)) 

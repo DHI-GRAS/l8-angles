@@ -1,8 +1,15 @@
 
 /* Standard C Includes */
 #include <stdio.h>
-#include <limits.h>
 #include <string.h>
+
+#ifndef _WIN32
+#include <limits.h>
+#define PATHMAX PATH_MAX
+#else
+#include <stdlib.h>
+#define PATHMAX _MAX_PATH
+#endif
 
 /* IAS Includes */
 #include "ias_angle_gen_includes.h"
@@ -163,7 +170,7 @@ int ias_misc_write_envi_header
     IAS_DATA_TYPE data_type     /* I: The IAS type of the data */
 )
 {
-    char output_filename[PATH_MAX]; /* ENVI header filename */
+    char output_filename[PATHMAX]; /* ENVI header filename */
     FILE *output_fd; /* File descriptor for the output file */
     int envi_data_type; /* The IAS_DATA_TYPE converted to the ENVI equivalent */
     int count;          /* The number of characters printed */

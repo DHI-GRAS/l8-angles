@@ -5,7 +5,6 @@ PURPOSE: print out the help, template, and "load table" information
 
 **************************************************************************/
 
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include "ias_parm.h"

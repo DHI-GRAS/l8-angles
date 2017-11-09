@@ -10,8 +10,14 @@ PURPOSE: Implements the standard message logging interface
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 #include <stdio.h>
+
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <process.h>
+#include <malloc.h>
+#endif
 
 #define LOGGING_C
 #include "ias_logging.h"
@@ -24,8 +30,6 @@ enum IAS_LOG_MESSAGE_LEVEL ias_log_message_level; /* Log meeasge level value */
 static FILE *file_ptr = NULL;                     /* Output file pointer */
 static char program_name[40];                     /* Current running program 
                                                      name */
-static pid_t pid;                                 /* Current running processor
-                                                     id */
 static char ias_log_channels[CHANNELS_LENGTH+3];  /* List of channels to 
                                                      log (3 additional chars:
                                                      start/stop commas and
@@ -38,6 +42,12 @@ static int use_blacklist = 0;                     /* Flag indicates if the
 static int dump_registered = 0;                   /* Flag that indicates
                                                      atexit dump handler was
                                                      registered */
+#ifndef _WIN32
+static pid_t pid;                                 /* Current running processor
+												  id */
+#else
+static int pid;
+#endif
 /*************************************************************************/
 
 /*************************************************************************
@@ -60,7 +70,11 @@ static int is_channel_enabled
         return TRUE;
 
     /* build the search string (prepend/append commas) */
+	#ifndef _WIN32
     char search_str[strlen(channel) + 3];
+	#else
+	char* search_str = (char*) _alloca(strlen(channel) + 3);
+	#endif
     sprintf(search_str, ",%s,", channel);
 
     /* return true if the channel is found in the channel list */
@@ -127,7 +141,7 @@ static void dump_io
             __LINE__, buffer);
     }
 
-    pclose(fp);
+    fclose(fp);
 }
 
 /*************************************************************************
@@ -158,7 +172,11 @@ int ias_log_initialize
 
     if (file_ptr == NULL)
         file_ptr = stdout;        /* set the output pointer to stdout */
+	#ifndef _WIN32
     pid = getpid();               /* get current process id */
+	#else
+	pid = _getpid();
+	#endif
 
     log_level = getenv("IAS_LOG_LEVEL");
     if ( log_level != NULL)

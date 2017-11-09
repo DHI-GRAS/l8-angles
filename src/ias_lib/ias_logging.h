@@ -31,6 +31,7 @@ Notes on use:
       set, all channels are enabled. 
 
 ****************************************************************************/
+#ifndef _WIN32
 /* Allow GCC to error check the parameters to the ias_log_message routine
    like it is a printf statement */
 #ifdef SWIG
@@ -39,6 +40,11 @@ Notes on use:
 #else
 #define PRINT_FORMAT_ATTRIBUTE  __attribute__ ((format(printf,4,5)))
 #define PRINT_FORMAT_ATTRIBUTE_WC  __attribute__ ((format(printf,5,6)))
+#endif
+
+#else
+#define PRINT_FORMAT_ATTRIBUTE
+#define PRINT_FORMAT_ATTRIBUTE_WC
 #endif
 
 /* Definition of supported log message levels */

@@ -1,6 +1,8 @@
 /* Standard Library Includes */
+#ifndef _WIN32
 #include <libgen.h>
 #include <stdlib.h>
+#endif
 #include <string.h>
 #include <math.h>
 
@@ -54,7 +56,7 @@ int main
     int calc_solar_angles;          /* Local solar angle flag */
     L8_ANGLES_PARAMETERS parameters;/* Parameters read in from file */
     IAS_ANGLE_GEN_METADATA metadata;/* Angle metadata structure */ 
-    char root_filename[PATH_MAX];   /* Root filename */
+    char root_filename[PATHMAX];   /* Root filename */
     char *base_ptr;                 /* Basename pointer */
     double r2d = 4500.0 / atan(1.0);/* Conversion to hundredths of degrees */
 

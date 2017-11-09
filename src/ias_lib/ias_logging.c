@@ -233,11 +233,19 @@ int ias_log_initialize
         ias_log_channels[0] = '\0';
     }
 
+	#ifndef _WIN32
     /* line based buffering to the output file to prevent delay */
     if (setvbuf(file_ptr, NULL, _IOLBF, 0) !=0)  
     {
         IAS_LOG_WARNING("Incorrect type or size of buffer for file_ptr");   
     }
+	#else
+	/* line based buffering to the output file to prevent delay */
+	if (setvbuf(file_ptr, NULL, _IOFBF, 81) != 0)
+	{
+		IAS_LOG_WARNING("Incorrect type or size of buffer for file_ptr");
+	}
+	#endif
 
     /* Register the at exit handler if not already registered */
     if (is_channel_enabled("IO") && (IAS_LOG_LEVEL_DEBUG

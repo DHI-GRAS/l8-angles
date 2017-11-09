@@ -1,12 +1,12 @@
 #----------------------------------------------------------------------------
 # Set up the compiler options.
 #----------------------------------------------------------------------------
-OPTS    = /Zi /c
-CC = cl
+OPTS    = -g -Wall -O2 -march=nocona -mfpmath=sse -msse2 
+CC = gcc
 #-------------------------------------------------------
 # Define the executable(s), the pdf(s), and the html(s).
 #-------------------------------------------------------
-LIBS   = l8ang.lib
+LIBS   = libl8ang.a
 
 INCS =	\
 	ias_angle_gen_distro.h \
@@ -50,21 +50,21 @@ SRC	= \
 	landsat8.c \
 	lablib3.c
 
-OBJ	= $(SRC:.c=.obj)
+OBJ	= $(SRC:.c=.o)
 
 #------------------------------------------------------------------------------
 # Targets for each executable. 
 #------------------------------------------------------------------------------
 all: $(LIBS) 
 
-l8ang.lib: $(OBJ)
-	lib /out:$@ $(OBJ) 
+libl8ang.a: $(OBJ)
+	ar -r $@ $(OBJ) 
 
 #---------------------------------------
 # Target to distribute the executable(s)
 #---------------------------------------
-$(OBJ):
-	$(CC) $(OPTS) $(SRC)
+.c.o:
+	$(CC) $(OPTS) -c $< -o $@
 
 clean:
-	rm -f *.obj *.lib *.pdb
+	/bin/rm -f *.o *.a 

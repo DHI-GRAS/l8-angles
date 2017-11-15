@@ -96,7 +96,7 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
             data['sun_zn'].append(sun_zn)
             data['sat_az'].append(sat_az)
             data['sat_zn'].append(sat_zn)
-        if angle_type == 'SATELLITE': 
+        elif angle_type == 'SATELLITE': 
             sat_az = np.empty((n_lines, n_samps), dtype=np.float64)
             sat_zn = np.empty((n_lines, n_samps), dtype=np.float64)
             status = cl8angles.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
@@ -105,7 +105,7 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
                 raise RuntimeError('Something horrible happened')
             data['sat_az'].append(sat_az)
             data['sat_zn'].append(sat_zn)
-        if angle_type == 'SOLAR': 
+        elif angle_type == 'SOLAR': 
             sun_az = np.empty((n_lines, n_samps), dtype=np.float64)
             sun_zn = np.empty((n_lines, n_samps), dtype=np.float64)
             status = cl8angles.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,

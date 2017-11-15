@@ -1,5 +1,5 @@
 cdef extern from ias_lib/ias_angle_gen_distro.h:
-    ctypedef struct IAS_ANGLE_GEN_METADATA:
+    cdef struct IAS_ANGLE_GEN_METADATA:
         pass
 
     int ias_angle_gen_read_ang(const char* ang_filename,
@@ -15,18 +15,27 @@ cdef extern from ias_lib/ias_satellite_attributes.h:
     int ias_sat_attr_initialize(IAS_SATELLITE_ID satellite_id)
 
 cdef extern from l8_angles.h:
-    ctypedef enum ANGLE_TYPE:
+    cdef enum angle_type:
         AT_UNKNOWN = 0,
         AT_BOTH,
         AT_SATELLITE,
         AT_SOLAR
+    ctypedef angle_type ANGLE_TYPE
+
+    cdef struct angles_frame:
+        int num_lines
+        int num_samps
+    ctypedef angles_frame ANGLES_FRAME
     ctypedef struct L8_ANGLES_PARAMETERS:
         pass
 
-    int calculate_angles(const IAS_ANGLE_GEN_METADATA* metadata, int line, 
-                         int samp, int band_index, ANGLE_TYPE angle_type,
-                         double* sat_angles, double* sun_angles)
+    int l8_angles(int band_idx, int n_lines, int n_samples,
+                  int sub_sample, ANGLE_TYPE angle,
+                  const IAS_ANGLE_GEN_METADATA* metadata,
+                  double* sun_az, double* sun_zn,
+                  double* sat_az, double* sat_zn)
 
-cdef extern from l8_angles.c:
-    int process_parameters(const int argument_count, char** arguments,
-                           L8_ANGLES_PARAMETERS* parameters)
+cdef extern from angles_api.c:
+    int get_frame(const IAS_ANGLE_GEN_METADATA* metadata,
+                  int band_index, ANGLES_FRAME* frame)
+

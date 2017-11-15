@@ -83,4 +83,17 @@ int read_parameters
     L8_ANGLES_PARAMETERS *parameters      /* O: Generate Chips parameters */
 );
 
+int l8_angles(
+    int band_idx,                               /* I: Index of band to process */
+    int n_lines,                                /* I: Number of lines */
+    int n_samples,                              /* I: Number of samples */
+    int sub_sample,                             /* I: Sub-sample factor */
+    ANGLE_TYPE angle,                           /* I: Type of angles to generate */
+    const IAS_ANGLE_GEN_METADATA* metadata,     /* I: Angle metadata structure */
+    double* sun_az,                             /* O: Solar azimuth angles */
+    double* sun_zn,                             /* O: Solar zenith angles */
+    double* sat_az,                             /* O: Satellite azimuth angles */ 
+    double* sat_zn                              /* O: Satellite zenith angles */
+);
+
 #endif

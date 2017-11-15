@@ -6,6 +6,8 @@
 #include <string.h>
 #include <math.h>
 
+static const double DNAN = 0.0/0.0;
+
 /* IAS Library Includes */
 #include "ias_logging.h"
 #include "ias_const.h"
@@ -15,7 +17,7 @@
 /* Local Includes */
 #include "l8_angles.h"
 
-/* Local defines */                                               
+/* Local defines */
 #define USE_MESSAGE "Usage: l8_angles \n" \
 "     <MetadataFilename>: (Required) Angle coefficient filename \n\n" \
 "     <AngleType>: (Required) The type of angles to generate \n" \
@@ -38,15 +40,15 @@ int process_parameters(const int argument_count, char *arguments[],
 /**************************************************************************
 NAME:      l8_angles (main)
 
-PURPOSE:   Initializes the IAS_ANGLE_GEN metdata structure and uses the 
+PURPOSE:   Initializes the IAS_ANGLE_GEN metdata structure and uses the
             coefficients to generate the satellite viewing angle and solar
-            angle image files.    
+            angle image files.
 
 RETURNS:   EXIT_SUCCESS or EXIT_FAILURE
 ***************************************************************************/
 int main
 (
-    int argc, 
+    int argc,
     char *argv[]
 )
 {
@@ -55,7 +57,7 @@ int main
     int calc_sat_angles;            /* Local satellite angle flag */
     int calc_solar_angles;          /* Local solar angle flag */
     L8_ANGLES_PARAMETERS parameters;/* Parameters read in from file */
-    IAS_ANGLE_GEN_METADATA metadata;/* Angle metadata structure */ 
+    IAS_ANGLE_GEN_METADATA metadata;/* Angle metadata structure */
     char root_filename[PATHMAX];   /* Root filename */
     char *base_ptr;                 /* Basename pointer */
     double r2d = 4500.0 / atan(1.0);/* Conversion to hundredths of degrees */
@@ -92,10 +94,10 @@ int main
     sub_sample = parameters.sub_sample_factor;
 
     /* Read the metadata file */
-    if (ias_angle_gen_read_ang(parameters.metadata_filename, &metadata) 
+    if (ias_angle_gen_read_ang(parameters.metadata_filename, &metadata)
         != SUCCESS)
     {
-        IAS_LOG_ERROR("Reading the metadata file %s", 
+        IAS_LOG_ERROR("Reading the metadata file %s",
             parameters.metadata_filename);
         return EXIT_FAILURE;
     }
@@ -111,7 +113,7 @@ int main
     {
         calc_solar_angles = FALSE;
     }
-    
+
     /* Extract the basename from the file path */
     base_ptr = strrchr(parameters.metadata_filename, '/');
     if (base_ptr)
@@ -160,8 +162,8 @@ int main
         short *sun_az = NULL;           /* Solar azimuth angle */
         ANGLES_FRAME frame;             /* Output image frame info */
         IAS_MISC_LINE_EXTENT *trim_lut; /* Image trim lookup table */
-        int band_number;                /* Band number */ 
-                
+        int band_number;                /* Band number */
+
         /* Retrieve the band number for current index */
         band_number = ias_sat_attr_convert_band_index_to_number(band_index);
         if (band_number == ERROR)
@@ -174,7 +176,7 @@ int main
         /* Check if this band should be processed */
         if (!parameters.process_band[band_index])
             continue;
-        
+
         /* Get framing information for this band if return is not successful
            then band is not present in metadata so continue */
         if (get_frame(&metadata, band_index, &frame) != SUCCESS)
@@ -188,7 +190,7 @@ int main
         num_lines = (frame.num_lines - 1) / sub_sample + 1;
         num_samps = (frame.num_samps - 1) / sub_sample + 1;
         IAS_LOG_INFO("Processing band number %d with %d lines and %d samples "
-            "using %d as sub-sampling factor", band_number, num_lines, 
+            "using %d as sub-sampling factor", band_number, num_lines,
             num_samps, sub_sample);
 
         /* Calculate the angle sizes */
@@ -246,7 +248,7 @@ int main
 
         /* Retrieve the trim look up table to remove the scene crenulation */
         trim_lut = ias_misc_create_output_image_trim_lut(
-            get_active_lines(&metadata, band_index), 
+            get_active_lines(&metadata, band_index),
             get_active_samples(&metadata, band_index),
             frame.num_lines, frame.num_samps);
         if (!trim_lut)
@@ -267,14 +269,14 @@ int main
             double sun_angles[2];   /* Solar angles */
             double sat_angles[2];   /* Viewing angles */
 
-            if (!(line / sub_sample % 500)) 
+            if (!(line / sub_sample % 500))
             {
                 IAS_LOG_INFO("Line %d", line/sub_sample);
             }
 
             for (samp = 0; samp < frame.num_samps; samp += sub_sample, index++)
             {
-                if (samp <= trim_lut[line].start_sample || 
+                if (samp <= trim_lut[line].start_sample ||
                     samp >= trim_lut[line].end_sample)
                 {
                     if (calc_sat_angles)
@@ -291,7 +293,7 @@ int main
                 }
 
                 /* Calculate the satellite and solar azimuth and zenith */
-                if(calculate_angles(&metadata, line, samp, band_index, 
+                if(calculate_angles(&metadata, line, samp, band_index,
                     parameters.angle_type, sat_angles, sun_angles) != SUCCESS)
                 {
                     IAS_LOG_ERROR("Evaluating angles in band %d", band_number);
@@ -304,21 +306,21 @@ int main
                     return EXIT_FAILURE;
                 }
 
-                /* Quantize the angles by converting from radians to degrees 
+                /* Quantize the angles by converting from radians to degrees
                    and scaling by a factor of 100 so it can be stored in the
                    short integer image */
                 if (calc_sat_angles)
                 {
-                    sat_az[index] = (short)round(r2d 
+                    sat_az[index] = (short)round(r2d
                         * sat_angles[IAS_ANGLE_GEN_AZIMUTH_INDEX]);
-                    sat_zn[index] = (short)round(r2d 
+                    sat_zn[index] = (short)round(r2d
                         * sat_angles[IAS_ANGLE_GEN_ZENITH_INDEX]);
                 }
-                if (calc_solar_angles)  
+                if (calc_solar_angles)
                 {
-                    sun_az[index] = (short)round(r2d 
+                    sun_az[index] = (short)round(r2d
                         * sun_angles[IAS_ANGLE_GEN_AZIMUTH_INDEX]);
-                    sun_zn[index] = (short)round(r2d 
+                    sun_zn[index] = (short)round(r2d
                         * sun_angles[IAS_ANGLE_GEN_ZENITH_INDEX]);
                 }
             }
@@ -336,8 +338,8 @@ int main
         if (calc_sat_angles)
         {
             if (ias_angle_gen_write_image(root_filename, sat_az, sat_zn,
-                IAS_ANGLE_GEN_SATELLITE, band_index, frame.num_lines, 
-                frame.num_samps, frame.ul_corner, frame.pixel_size, 
+                IAS_ANGLE_GEN_SATELLITE, band_index, frame.num_lines,
+                frame.num_samps, frame.ul_corner, frame.pixel_size,
                 &frame.projection) != SUCCESS)
             {
                 IAS_LOG_ERROR("Writing satellite angles for band number %d",
@@ -359,9 +361,9 @@ int main
         /* Write out the solar image file */
         if (calc_solar_angles)
         {
-            if (ias_angle_gen_write_image(root_filename, sun_az, sun_zn,  
-                IAS_ANGLE_GEN_SOLAR, band_index, frame.num_lines, 
-                frame.num_samps, frame.ul_corner, frame.pixel_size, 
+            if (ias_angle_gen_write_image(root_filename, sun_az, sun_zn,
+                IAS_ANGLE_GEN_SOLAR, band_index, frame.num_lines,
+                frame.num_samps, frame.ul_corner, frame.pixel_size,
                 &frame.projection) != SUCCESS)
             {
                 IAS_LOG_ERROR("Writing solar angles for band number %d",
@@ -374,7 +376,7 @@ int main
 
             free(sun_zn);
             free(sun_az);
-            sun_zn = NULL;  
+            sun_zn = NULL;
             sun_az = NULL;
         }
     }
@@ -413,22 +415,22 @@ int process_parameters
     int status;
 
     /* Copy the angle coefficient filename */
-    status = snprintf(parameters->metadata_filename, 
-        sizeof(parameters->metadata_filename), "%s", arguments[1]); 
+    status = snprintf(parameters->metadata_filename,
+        sizeof(parameters->metadata_filename), "%s", arguments[1]);
     if (status < 0 || status >= sizeof(parameters->metadata_filename))
     {
         IAS_LOG_ERROR("Copying the metadata filename");
         return ERROR;
-    }   
+    }
 
     /* Copy the angle type */
-    status = snprintf(local_angle_type, sizeof(local_angle_type), "%s", 
-        arguments[2]); 
+    status = snprintf(local_angle_type, sizeof(local_angle_type), "%s",
+        arguments[2]);
     if (status < 0 || status >= sizeof(local_angle_type))
     {
         IAS_LOG_ERROR("Copying the angle type");
         return ERROR;
-    }  
+    }
 
     /* Convert the angle type from string to enumeration */
     ias_misc_convert_to_uppercase(local_angle_type);
@@ -463,7 +465,7 @@ int process_parameters
     local_band_count = 0;
     parameters->background = 0;
 
-    
+
     /* Parse the fill pixel value and band list */
     for (index = 4; index < argument_count; index++)
     {
@@ -497,11 +499,11 @@ int process_parameters
         {
             int offset = 0;
             int character_count = 0;
-            const char *bands; 
+            const char *bands;
             int band_length;
-            
+
             /* Shift to the bands argument */
-            index++;            
+            index++;
 
             /* Check that a parameter was provided after option handler */
             if (index >= argument_count)
@@ -523,13 +525,13 @@ int process_parameters
                 }
 
                 character_count += offset + 1;
-                bands += offset + 1; /* Move pointer ahead the number length 
+                bands += offset + 1; /* Move pointer ahead the number length
                                         + 1 (for the comma) */
                 local_band_count++;
                 if (local_band_count > IAS_MAX_NBANDS)
                 {
                     IAS_LOG_ERROR("Too many bands specified");
-                    return ERROR;   
+                    return ERROR;
                 }
             }
 
@@ -552,7 +554,7 @@ int process_parameters
     for (index = 0; index < local_band_count; index++)
     {
         /* Convert the band number entered into a band index */
-        int temp_band_index = ias_sat_attr_convert_band_number_to_index(    
+        int temp_band_index = ias_sat_attr_convert_band_number_to_index(
                                 local_band_numbers[index]);
         if (temp_band_index == ERROR)
         {
@@ -566,7 +568,7 @@ int process_parameters
         {
             if (!band_already_in_list[temp_band_index])
             {
-                /* Put band in list and flag that it has been added 
+                /* Put band in list and flag that it has been added
                    to the list */
                 parameters->process_band[temp_band_index] = 1;
                 band_already_in_list[temp_band_index] += 1;
@@ -584,4 +586,82 @@ int process_parameters
     }
 
     return SUCCESS;
+}
+
+int l8_angles(int band_idx, int n_lines, int n_samples, int sub_sample,
+              ANGLE_TYPE angle, const IAS_ANGLE_GEN_METADATA* metadata,
+              double* sun_az, double* sun_zn, double* sat_az, double* sat_zn) {
+
+    double r2d = 45.0 / atan(1.0);/* Conversion to degrees */
+
+    /* Check which angles should be computed */
+    int calc_sat = 0;
+    int calc_sun = 0;
+    if (angle == AT_BOTH) {
+        calc_sat = 1;
+        calc_sun = 1;
+    } else if (angle == AT_SATELLITE) {
+        calc_sat = 1;
+    } else if (angle == AT_SOLAR) {
+        calc_sun = 1;
+    }
+
+    /* Retrieve the trim look up table to remove the scene crenulation */
+    IAS_MISC_LINE_EXTENT* trim_lut;
+    trim_lut = ias_misc_create_output_image_trim_lut(
+        get_active_lines(metadata, band_idx),
+        get_active_samples(metadata, band_idx),
+        n_lines, n_samples);
+    if (!trim_lut)
+    {
+        IAS_LOG_ERROR("Creating the scene trim lookup table for band "
+            "number %d", band_idx + 1);
+        return ERROR;
+    }
+
+    int index;
+    int line;
+    for (line = 0, index = 0; line < n_lines; line += sub_sample) {
+        double sun_angles[2];
+        double sat_angles[2];
+
+        for (int samp = 0; samp < n_samples; samp += sub_sample, index++) {
+            if (samp <= trim_lut[line].start_sample ||
+                samp >= trim_lut[line].end_sample)
+            {
+                if (calc_sat)
+                {
+                    sat_zn[index] = DNAN;
+                    sat_az[index] = DNAN;
+                }
+                if (calc_sun)
+                {
+                    sun_zn[index] = DNAN;
+                    sun_az[index] = DNAN;
+                }
+                continue;
+            }
+
+            /* Calculate the satellite and solar azimuth and zenith */
+            if(calculate_angles(metadata, line, samp, band_idx,
+                angle, sat_angles, sun_angles) != SUCCESS)
+            {
+                IAS_LOG_ERROR("Evaluating angles in band %d", band_idx + 1);
+                free(trim_lut);
+                return ERROR;
+            }
+
+            if (calc_sat)
+            {
+                sat_az[index] = r2d * sat_angles[IAS_ANGLE_GEN_AZIMUTH_INDEX];
+                sat_zn[index] = r2d * sat_angles[IAS_ANGLE_GEN_ZENITH_INDEX];
+            }
+            if (calc_sun)
+            {
+                sun_az[index] = r2d * sun_angles[IAS_ANGLE_GEN_AZIMUTH_INDEX];
+                sun_zn[index] = r2d * sun_angles[IAS_ANGLE_GEN_ZENITH_INDEX];
+            }
+        }
+    }
+
 }

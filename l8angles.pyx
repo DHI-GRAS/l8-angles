@@ -6,12 +6,13 @@ cimport numpy as np
 cimport cl8angles as cl8
 
 
-cdef init_lib():
+cdef int init_lib():
 
     cdef int status = 0
     status = cl8.ias_log_initialize("l8angles")
     if status == -1:
         return -1
+    cl8.ias_log_set_output_level(cl8.IAS_LOG_LEVEL_DISABLE)
     status = cl8.ias_sat_attr_initialize(cl8.IAS_L8)
     if status == -1:
         return -2
@@ -25,7 +26,7 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
     if bands is None:
         bandlist = np.arange(11, dtype=np.intc)
     else:
-        if any(x < 1 for x in bandlist) or any(x > 11 for x in bandlist):
+        if any(x < 1 for x in bands) or any(x > 11 for x in bands):
             raise ValueError('Invalid bandindex in bandlist')
         bandlist = np.array(bands, dtype=np.intc)
         bandlist -= 1
@@ -110,8 +111,8 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
                                    &sun_az[0,0], &sun_zn[0,0], NULL, NULL)
             if status == -1:
                 raise RuntimeError('Something horrible happened')
-            data['sat_az'].append(sat_az)
-            data['sat_zn'].append(sat_zn)
+            data['sun_az'].append(sun_az)
+            data['sun_zn'].append(sun_zn)
 
     return data
 

@@ -54,3 +54,6 @@ dkms.conf
 # Output files
 *.img
 *.img.hdr
+
+# Cython lib
+*.pyd

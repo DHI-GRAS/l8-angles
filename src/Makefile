@@ -54,10 +54,10 @@ dll: $(LIB)
 	$(CC) $(OPTS) /LD $(SRC) $(LIB) /link /DLL /OUT:..\l8ang.dll
 
 exec: $(LIB)
-	$(CC) $(OPTS) /Fe$(EXEC) $(SRC) $(LIB) 
+	$(CC) $(OPTS) /Fe$(EXEC) $(SRC) $(LIB)
 
 db_exec: $(DBLIB)
-	$(CC) $(DBOPTS) /Fe$(EXEC) $(SRC) $(DBLIB)
+	$(CC) $(DBOPTS) /Fe$(DBEXEC) $(SRC) $(DBLIB)
 
 #------------------------------------------------------------------------------
 # Misc.

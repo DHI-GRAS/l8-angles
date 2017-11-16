@@ -664,4 +664,6 @@ int l8_angles(int band_idx, int n_lines, int n_samples, int sub_sample,
         }
     }
 
+    return SUCCESS;
+
 }

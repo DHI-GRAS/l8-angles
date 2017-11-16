@@ -11,7 +11,9 @@ CC 	= cl
 #-------------------------------------------------------
 # Define the executable(s), the pdf(s), and the html(s).
 #-------------------------------------------------------
-LIBS   = l8ang.lib
+LIB   = l8ang.lib
+
+DBLIB = l8ang_db.lib
 
 INCS =	\
 	ias_angle_gen_distro.h \
@@ -57,15 +59,20 @@ SRC	= \
 
 OBJ	= $(SRC:.c=.obj)
 
+.PHONY: clean obj dbobj
+
 #------------------------------------------------------------------------------
 # Targets for each executable. 
 #------------------------------------------------------------------------------
-all: obj $(LIBS)
+all: $(LIB)
 
-debug: dbobj $(LIBS)
+debug: $(DBLIB)
 
-l8ang.lib: $(OBJ) 
+$(LIB): obj 
 	lib /out:$@ $(OBJ) 
+
+$(DBLIB): dbobj
+	lib /out:$@ $(OBJ)
 
 #---------------------------------------
 # Target to distribute the executable(s)

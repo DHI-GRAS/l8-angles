@@ -20,12 +20,23 @@ SRC	= \
 EXEC 	= \
 	l8_angles.exe
 
+DBEXEC	= \
+	l8_angles_db.exe
+
+LIB	= \
+	ias_lib\l8ang.lib
+
+DBLIB	= \
+	ias_lib\l8ang_db.lib
+
 #------------------------------------------------------------------------------
 # Targets for each executable. 
 #------------------------------------------------------------------------------
-all: setup exec
+all: exec
 
-debug: setup db_exec
+debug: db_exec
+
+dll: dll
 
 setup:
 	cd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build" &&\
@@ -33,22 +44,26 @@ setup:
 	set INCLUDE=%INCLUDE%C:\Users\phgr\Documents\l8_angles\src\ias_lib; &&\
 	set LIB=%LIB%"C:\Users\phgr\Documents\l8_angles\src\ias_lib;
 
-exec: lib
-	$(CC) $(OPTS) /Fe$(EXEC) $(SRC) ias_lib\l8ang.lib 
-
-db_exec: dblib
-	$(CC) $(DBOPTS) /Fe$(EXEC) $(SRC) ias_lib\l8ang.lib
-
-lib:
+$(LIB):
 	cd ias_lib && make
 
-dblib:
+$(DBLIB):
 	cd ias_lib && make debug
+
+dll: $(LIB)
+	$(CC) $(OPTS) /LD $(SRC) $(LIB) /link /DLL /OUT:..\l8ang.dll
+
+exec: $(LIB)
+	$(CC) $(OPTS) /Fe$(EXEC) $(SRC) $(LIB) 
+
+db_exec: $(DBLIB)
+	$(CC) $(DBOPTS) /Fe$(EXEC) $(SRC) $(DBLIB)
 
 #------------------------------------------------------------------------------
 # Misc.
 #------------------------------------------------------------------------------
 clean:
 	rm -f *.obj *.exe *.pdb *.ilk & \
+	rm ..\l8ang.dll & \
 	cd ias_lib && make clean
 

@@ -3,28 +3,18 @@ import os.path
 import numpy as np
 cimport numpy as np
 
-cimport cl8angles
+cimport cl8angles as cl8
 
 
 cdef init_lib():
 
     cdef int status = 0
-    status = cl8angles.ias_log_initialize("l8angles")
+    status = cl8.ias_log_initialize("l8angles")
     if status == -1:
-        raise RuntimeError('Could not init logging')
-    status = cl8angles.ias_sat_attr_initialize(IAS_L8)
+        return -1
+    status = cl8.ias_sat_attr_initialize(cl8.IAS_L8)
     if status == -1:
-        raise RuntimeError('Could not initialize satellite attributes')
-
-
-def init_bandlist(bands):
-
-    bandlist = np.zeros(11, dtype=intc)
-    for i in range(len(bands)):
-        idx = bands[i]
-        bandlist[idx-1] = 1
-
-    return bandlist
+        return -2
 
 
 def calculate_angles(metadata_fp, angle_type='BOTH',
@@ -46,23 +36,27 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
     if angle_type not in ['BOTH', 'SATELLITE', 'SOLAR']:
         raise ValueError('angle_type must be either BOTH, SATELLITE or SOLAR')
 
-    cdef ANGLE_TYPE ang = AT_UNKNOWN
+    cdef cl8.ANGLE_TYPE ang = cl8.AT_UNKNOWN
     if angle_type == 'BOTH':
-        ang = AT_BOTH
+        ang = cl8.AT_BOTH
     elif angle_type == 'SATELLITE':
-        ang = AT_SATELLITE
+        ang = cl8.AT_SATELLITE
     elif angle_type == 'SOLAR':
-        ang = AT_SOLAR
+        ang = cl8.AT_SOLAR
 
-    init_lib()
+    status = init_lib()
+    if status == -1:
+        raise RuntimeError('Could not initialize logging')
+    if status == -2:
+        raise RuntimeError('Could not initialize library')
 
     if not os.path.isfile(metadata_fp):
         raise ValueError('Metadata file does not exist')
     filename = metadata_fp.encode('ascii')
     cdef char* c_filename = filename
 
-    cdef IAS_ANGLE_GEN_METADATA metadata
-    status = cl8angles.ias_angle_gen_read_ang(c_filename, &metadata)
+    cdef cl8.IAS_ANGLE_GEN_METADATA metadata
+    status = cl8.ias_angle_gen_read_ang(c_filename, &metadata)
     if status == -1:
         raise ValueError('Invalid metadata file')
 
@@ -75,10 +69,14 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
     
     cdef int n_lines
     cdef int n_samps
-    cdef ANGLES_FRAME frame
+    cdef cl8.ANGLES_FRAME frame
+    cdef np.ndarray[np.float64_t, ndim=2] sun_az
+    cdef np.ndarray[np.float64_t, ndim=2] sun_zn
+    cdef np.ndarray[np.float64_t, ndim=2] sat_az
+    cdef np.ndarray[np.float64_t, ndim=2] sat_zn
     for i in range(bandlist.size):
         band = bandlist[i]
-        status = cl8angles.get_frame(&metadata, band, &frame)
+        status = cl8.get_frame(&metadata, band, &frame)
         if status == -1:
             raise ValueError('Band {} not present in metadata file'.format(band + 1))
         n_lines = (frame.num_lines - 1) // subsample + 1
@@ -88,8 +86,8 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
             sun_zn = np.empty((n_lines, n_samps), dtype=np.float64)
             sat_az = np.empty((n_lines, n_samps), dtype=np.float64)
             sat_zn = np.empty((n_lines, n_samps), dtype=np.float64)
-            status = cl8angles.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
-                                         &sun_az[0,0], &sun_zn[0,0], &sat_az[0,0], &sat_zn[0,0])
+            status = cl8.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
+                                   &sun_az[0,0], &sun_zn[0,0], &sat_az[0,0], &sat_zn[0,0])
             if status == -1:
                 raise RuntimeError('Something horrible happened')
             data['sun_az'].append(sun_az)
@@ -99,8 +97,8 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
         elif angle_type == 'SATELLITE': 
             sat_az = np.empty((n_lines, n_samps), dtype=np.float64)
             sat_zn = np.empty((n_lines, n_samps), dtype=np.float64)
-            status = cl8angles.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
-                                         NULL, NULL, &sat_az[0,0], &sat_zn[0,0])
+            status = cl8.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
+                                   NULL, NULL, &sat_az[0,0], &sat_zn[0,0])
             if status == -1:
                 raise RuntimeError('Something horrible happened')
             data['sat_az'].append(sat_az)
@@ -108,22 +106,12 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
         elif angle_type == 'SOLAR': 
             sun_az = np.empty((n_lines, n_samps), dtype=np.float64)
             sun_zn = np.empty((n_lines, n_samps), dtype=np.float64)
-            status = cl8angles.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
-                                         &sun_az[0,0], &sun_zn[0,0], NULL, NULL)
+            status = cl8.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
+                                   &sun_az[0,0], &sun_zn[0,0], NULL, NULL)
             if status == -1:
                 raise RuntimeError('Something horrible happened')
             data['sat_az'].append(sat_az)
             data['sat_zn'].append(sat_zn)
 
     return data
-
-
-cdef _calculate_angles(char** argv, int sample_factor, ANGLE_TYPE angle_type):
-
-    # Try parsing the file and parameters
-    cdef L8_ANGLES_PARAMETERS params
-    cdef int argc = 6
-    cdef int status = cl8angles.process_parameters(argc, argv, &params)
-    if status == -1:
-        raise ValueError('One or more invalid arguments or invalid metadata file')
 

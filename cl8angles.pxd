@@ -6,7 +6,15 @@ cdef extern from "ias_lib/ias_angle_gen_distro.h":
                                IAS_ANGLE_GEN_METADATA* metadata)
 
 cdef extern from "ias_lib/ias_logging.h":
+    ctypedef enum IAS_LOG_MESSAGE_LEVEL:
+        IAS_LOG_LEVEL_DEBUG = 0,
+        IAS_LOG_LEVEL_INFO,
+        IAS_LOG_LEVEL_WARN,
+        IAS_LOG_LEVEL_ERROR,
+        IAS_LOG_LEVEL_DISABLE
+
     int ias_log_initialize(const char* log_program_name)
+    IAS_LOG_MESSAGE_LEVEL ias_log_set_output_level(int new_level)
 
 cdef extern from "ias_lib/ias_satellite_attributes.h":
     ctypedef enum IAS_SATELLITE_ID:

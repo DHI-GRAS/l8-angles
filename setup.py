@@ -6,7 +6,7 @@ import numpy
 extensions = [
     Extension("l8angles", ["l8angles.pyx"],
               include_dirs = ["src", "src/ias_lib", numpy.get_include()],
-              extra_objects=["src/ias_lib/l8ang.lib", "src/l8_angles.obj"])
+              libraries=["l8_angles"])
 ]
 
 setup(

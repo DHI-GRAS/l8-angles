@@ -90,7 +90,7 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
             status = cl8.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
                                    &sun_az[0,0], &sun_zn[0,0], &sat_az[0,0], &sat_zn[0,0])
             if status == -1:
-                raise RuntimeError('Something horrible happened')
+                raise RuntimeError('Internal error in l8ang lib')
             data['sun_az'].append(sun_az)
             data['sun_zn'].append(sun_zn)
             data['sat_az'].append(sat_az)
@@ -101,7 +101,7 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
             status = cl8.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
                                    NULL, NULL, &sat_az[0,0], &sat_zn[0,0])
             if status == -1:
-                raise RuntimeError('Something horrible happened')
+                raise RuntimeError('Internal error in l8ang lib')
             data['sat_az'].append(sat_az)
             data['sat_zn'].append(sat_zn)
         elif angle_type == 'SOLAR': 
@@ -110,7 +110,7 @@ def calculate_angles(metadata_fp, angle_type='BOTH',
             status = cl8.l8_angles(band, n_lines, n_samps, subsample, ang, &metadata,
                                    &sun_az[0,0], &sun_zn[0,0], NULL, NULL)
             if status == -1:
-                raise RuntimeError('Something horrible happened')
+                raise RuntimeError('Internal error in l8ang lib')
             data['sun_az'].append(sun_az)
             data['sun_zn'].append(sun_zn)
 

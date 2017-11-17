@@ -55,5 +55,13 @@ dkms.conf
 *.img
 *.img.hdr
 
-# Cython lib
+# Cython output
 *.pyd
+/l8angles.c
+
+# Vim
+*.swp
+
+# Ipython/Jupyter
+*.ipynb
+.ipynb_checkpoints

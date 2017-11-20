@@ -16,13 +16,13 @@ conda install py-l8angles
 
 ## Usage
 The package exposes a single function `calculate_angles`, taking the following parameters:
-- metadata_file: str
+- metadata_file: str  
     Path to the ANG file
-- angle_type: str (default: 'BOTH')
+- angle_type: str (default: 'BOTH')  
     What angles to compute, either 'BOTH', 'SOLAR' or 'SATELLITE'
-- subsample: int (default: 1)
+- subsample: int (default: 1)  
     Subsample factor, i.e. a subsample of 2 will halve the resolution
-- bands: list (default: [1..11])
+- bands: list (default: [1..11])  
     What bands to compute angles for
 
 The function returns a dictionary, mapping angle type (sun/sat_az/zn, where az and zn is azimuth and zenith)

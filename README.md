@@ -2,7 +2,7 @@
 
 This package implements a simple Python interface to the USGS Landsat 8 tool for computing
 per-pixel solar and sensor azimuth and zenith angles, from Angle Coefficient Files
-(https://landsat.usgs.gov/solar-illumination-and-sensor-viewing-angle-coefficient-file)
+(https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files)
 
 ## Installation
 Since this package depends on C code, it is recommended that you either
